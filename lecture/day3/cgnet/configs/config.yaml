@@ -1,0 +1,47 @@
+optimizer : {
+  type: AdamW,
+  kwargs: {
+  lr : 0.0005, 
+  weight_decay : 0.0005
+}}
+
+scheduler: {
+  type: LambdaLR,
+  kwargs: {
+  decay_step: 21,
+  lr_decay: 0.9,
+  lowest_decay: 0.02  # min lr = lowest_decay * lr
+}}
+
+bnmscheduler: {
+  type: Lambda,
+  kwargs: {
+  decay_step: 21,
+  bn_decay: 0.5,
+  bn_momentum: 0.9,
+  lowest_decay: 0.01
+}}
+
+# dataset : {
+#   train : { _base_: cfgs/dataset_configs/DC6D.yaml, 
+#             others: {subset: 'train'}},
+#   val : { _base_: cfgs/dataset_configs/DC6D.yaml, 
+#             others: {subset: 'test'}},
+#   test : { _base_: cfgs/dataset_configs/DC6D.yaml, 
+#             others: {subset: 'test'}}}
+
+model : {
+  NAME: ContactGraspNet, 
+  num_query: 256, 
+  knn_layer: 0, 
+  trans_dim: 512,
+}
+  
+total_bs : 80
+step_per_update : 1
+max_epoch : 100000
+
+consider_metric: ContactGraspNetLoss
+# consider_metric: QualityACC
+# consider_metric: HungarianL1Loss
+# consider_metric: Bi_Grasp_Chamfer_L2_Distance

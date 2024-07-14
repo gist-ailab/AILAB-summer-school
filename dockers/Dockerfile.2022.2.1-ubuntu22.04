@@ -1,0 +1,266 @@
+# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Reference:
+# https://gitlab.com/nvidia/container-images/vulkan/-/blob/master/docker/Dockerfile.ubuntu
+# https://github.com/NVIDIA-Omniverse/IsaacSim-dockerfiles
+#
+# Build the image:
+# docker login nvcr.io
+# docker build --pull -t \
+#   isaac-sim:2022.2.1-ubuntu20.04 \
+#   --build-arg ISAACSIM_VERSION=2022.2.1 \
+#   --build-arg BASE_DIST=ubuntu20.04 \
+#   --build-arg CUDA_VERSION=11.4.2 \
+#   --build-arg VULKAN_SDK_VERSION=1.3.224.1 \
+#   --file Dockerfile.2022.2.1-ubuntu20.04 .
+#
+# Run container:
+# docker run --name isaac-sim --entrypoint bash -it --gpus all -e "ACCEPT_EULA=Y" --rm --network=host \
+#   -v ~/docker/isaac-sim/cache/kit:/isaac-sim/kit/cache/Kit:rw \
+#   -v ~/docker/isaac-sim/cache/ov:/home/user/.cache/ov:rw \
+#   -v ~/docker/isaac-sim/cache/pip:/home/user/.cache/pip:rw \
+#   -v ~/docker/isaac-sim/cache/glcache:/home/user/.cache/nvidia/GLCache:rw \
+#   -v ~/docker/isaac-sim/cache/computecache:/home/user/.nv/ComputeCache:rw \
+#   -v ~/docker/isaac-sim/logs:/home/user/.nvidia-omniverse/logs:rw \
+#   -v ~/docker/isaac-sim/data:/home/user/.local/share/ov/data:rw \
+#   -v ~/docker/isaac-sim/documents:/home/user/Documents:rw \
+# 	isaac-sim:2022.2.1-ubuntu20.04 \
+# 	./runheadless.native.sh
+#
+# More info:
+# https://developer.nvidia.com/isaac-sim
+#
+ARG DEBIAN_FRONTEND=noninteractive
+ARG BASE_DIST=ubuntu20.04
+ARG CUDA_VERSION=11.4.2
+ARG ISAACSIM_VERSION=2022.2.1
+
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/isaac-sim
+FROM nvcr.io/nvidia/isaac-sim:${ISAACSIM_VERSION} as isaac-sim
+
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cudagl
+FROM quay.io/ulagbulag/openark-vine-desktop:latest-ubuntu2004
+
+# Install dependencies
+USER root
+RUN echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+RUN curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    libatomic1 \
+    libegl1 \
+    libglu1-mesa \
+    libgomp1 \
+    libsm6 \
+    libxi6 \
+    libxrandr2 \
+    libxt6 \
+    libfreetype-dev \
+    libfontconfig1 \
+    openssl \
+    libssl1.1 \
+    wget \
+    vulkan-utils \
+    gcc \
+    vim \
+    unzip \
+    wget \
+    zsh \
+    && apt-get -y autoremove \
+    && apt-get clean autoclean \
+    && rm -rf /var/lib/apt/lists/*
+USER user
+
+# Setup Miniconda for userspace
+RUN ANACONDA_SRC_FILE="/tmp/miniconda-installer.sh" \
+    ## Download
+    && wget -q -O "${ANACONDA_SRC_FILE}" "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
+    ## Install
+    && bash "${ANACONDA_SRC_FILE}" -b \
+    ## Setup
+    && ~/miniconda3/bin/conda init bash zsh \
+    && . ~/.bashrc \
+    ## Cleanup
+    && rm -f "${ANACONDA_SRC_FILE}"
+
+# Copy Isaac Sim files
+RUN mkdir -p ~/.nvidia-omniverse/config
+COPY --from=isaac-sim /isaac-sim /isaac-sim
+COPY --from=isaac-sim /root/.nvidia-omniverse/config /home/user/.nvidia-omniverse/config
+
+# Configure VSCode
+COPY settings.json /home/user/.vscode-server/data/Machine/settings.json
+COPY ailab_examples/ /isaac-sim/exts/omni.isaac.examples/omni/isaac/examples/ailab_examples/
+COPY ailab_script/ /isaac-sim/exts/omni.isaac.examples/omni/isaac/examples/ailab_script/
+COPY extension.toml /isaac-sim/exts/omni.isaac.examples/config/extension.toml
+
+# Default entrypoint to launch headless with streaming
+RUN git clone https://github.com/gist-ailab/AILAB-isaac-sim-pick-place.git --recurse-submodules --remote-submodules
+
+# Setup Miniconda development environment
+RUN . ~/.bashrc \
+    ## SetupCOPY ailab_examples/ /isaac-sim/exts/omni.isaac.examples/omni/isaac/examples/ailab_examples/
+    && ln -sf /isaac-sim/environment.yml ~/environment.yml \
+    && ~/miniconda3/bin/conda env create -f ~/environment.yml \
+    && rm -f ~/environment.yml \
+    ## Install dependencies
+    && ~/miniconda3/envs/isaac-sim/bin/python -m pip install -r ~/AILAB-isaac-sim-pick-place/requirements.txt  \
+    && ~/miniconda3/envs/isaac-sim/bin/python -m pip install ipykernel jupyter \
+    ## Configure local environment variables
+    && echo 'export PATH=${PATH}:/isaac-sim' >> ~/.aliases \
+    && echo 'export PATH=${PATH}:/usr/local/bin' >> ~/.aliases \
+    && echo "conda activate isaac-sim" >> ~/.aliases \
+    && echo ". /isaac-sim/setup_conda_env.sh" >> ~/.aliases \
+    && echo "source ~/.aliases" >> ~/.bashrc \
+    && echo "source ~/.aliases" >> ~/.zshrc
+
+RUN ln -s exts/omni.isaac.examples/omni/isaac/examples extension_examples
+
+# Setup desktop template
+ARG KISS_DESKTOP_TEMPLATE_GIT="https://github.com/ulagbulag/openark-desktop-template.git"
+ARG KISS_DESKTOP_TEMPLATE_GIT_BRANCH="master"
+RUN true \
+    ## Backup .zshrc
+    && mv .zshrc .zshrc-bak \
+    ## Download and install templates
+    && git init . \
+    && git remote add origin "${KISS_DESKTOP_TEMPLATE_GIT}" \
+    && git pull "origin" "${KISS_DESKTOP_TEMPLATE_GIT_BRANCH}" \
+    ## Backup .zshrc
+    && mv .zshrc .zshrc-desktop \
+    ## Install ZSH Theme
+    && sh -c "$(curl -fsSL "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh")" \
+    && git clone --depth=1 \
+    "https://github.com/romkatv/powerlevel10k.git" \
+    "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" \
+    ## Restore .zshrc
+    && rm -f .zshrc \
+    && mv .zshrc-desktop .zshrc \
+    && cat .zshrc-bak >>.zshrc \
+    && rm -f .zshrc-bak \
+    ## Lock desktop template (Do not wipe it!)
+    && touch ~/.kiss-lock \
+    ## Cleanup
+    && rm -rf ~/.git
+
+# Install picom (X Compositor)
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libxext-dev \
+    libxcb1-dev \
+    libxcb-damage0-dev \
+    libxcb-dpms0-dev \
+    libxcb-xfixes0-dev \
+    libxcb-shape0-dev \
+    libxcb-render-util0-dev \
+    libxcb-render0-dev \
+    libxcb-randr0-dev \
+    libxcb-composite0-dev \
+    libxcb-image0-dev \
+    libxcb-present-dev \
+    libxcb-glx0-dev \
+    libxcb-util-dev \
+    libpixman-1-dev \
+    libdbus-1-dev \
+    libconfig-dev \
+    libgl-dev \
+    libegl-dev \
+    libpcre2-dev \
+    libevdev-dev \
+    uthash-dev \
+    libev-dev \
+    libx11-xcb-dev \
+    meson \
+    && git clone "https://github.com/yshui/picom.git" \
+    && cd ./picom \
+    && meson setup --buildtype=release build \
+    && ninja -C build \
+    && ninja -C build install \
+    && cd - \
+    && rm -rf ./picom \
+    && apt-get -y autoremove \
+    && apt-get clean autoclean \
+    && rm -rf /var/lib/apt/lists/*
+USER user
+
+# Tune for MobileX Station
+ARG SHELL="/bin/bash"
+ARG SHELL_WORKDIR="/home/user/Desktop"
+RUN true \
+    ## Desktop Settings
+    ### Picom
+    && sed -i 's/ *\-\-experimental\-backends//g' ~/.config/autostart/Picom.desktop \
+    ### Plank (Desktop Dock)
+    && rm -f ~/.config/autostart/plank.desktop \
+    && ln -sf /usr/share/applications/plank.desktop ~/.config/autostart/ \
+    ### VSCode
+    && mkdir -p ~/.config/Code/User/ \
+    && cp /home/user/.vscode-server/data/Machine/settings.json ~/.config/Code/User/settings.json \
+    ### XFCE4 Termimal
+    && sed -i 's/^ColorUseTheme\=[A-Z]\+//g' ~/.config/xfce4/terminal/terminalrc \
+    && sudo sed -i "s/^Exec\=xfce4\-terminal\$/Exec\=bash \-c \'cd $(echo "${SHELL_WORKDIR}" | sed 's/\//\\\//g') \&\& xfce4\-terminal\'/g" /usr/share/applications/xfce4-terminal.desktop \
+    && sed -i "s/exo\-open \-\-launch TerminalEmulator/\0 \-\-working\-directory $(echo "${SHELL_WORKDIR}" | sed 's/\//\\\//g')/g" ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml \
+    ## Configure default shell
+    && sudo chsh -s "${SHELL}" user \
+    ## Remove native Vulkan ICD Loaders (Automatically loaded!)
+    && sudo rm -rf /usr/share/vulkan/icd.d \
+    ## Make Isaac Sim script directory path Absolute
+    && sudo sed -i 's/\"\$( *cd *\"\$( *dirname *\"\${BASH_SOURCE\[0\]}\" *)\" *\&\& *pwd *)\"/\"\/isaac-sim\"/g' /isaac-sim/setup_conda_env.sh \
+    && sudo sed -i 's/\"\$( *dirname *\"\${BASH_SOURCE}\" *)\"/\"\/isaac-sim\"/g' /isaac-sim/setup_python_env.sh \
+    ## Redirect kit sub-directories into local
+    && _BASEDIR="/home/user/Desktop/.isaac-sim" \
+    && sudo rm -rf /isaac-sim/kit/cache && sudo ln -sf "${_BASEDIR}/kit/cache" /isaac-sim/kit/cache \
+    && sudo rm -rf /isaac-sim/kit/data && sudo ln -sf "${_BASEDIR}/kit/data" /isaac-sim/kit/data \
+    && sudo rm -rf /isaac-sim/kit/documents && sudo ln -sf "${_BASEDIR}/kit/documents" /isaac-sim/kit/documents \
+    && sudo rm -rf /isaac-sim/kit/logs && sudo ln -sf "${_BASEDIR}/kit/logs" /isaac-sim/kit/logs \
+    ## Edit entrypoint (NOTE: `init-desktop-custom.sh` does nothing but executed on init.)
+    && ENTRYPOINT="/opt/scripts/init-desktop-custom.sh" \
+    ### Create `AILAB-isaac-sim-pick-place` directory on Desktop and Make it persistent
+    && echo '_BASEDIR="${HOME}/Desktop/.isaac-sim"' | sudo tee -a "${ENTRYPOINT}" \
+    && echo '_LOWERDIR="${HOME}/AILAB-isaac-sim-pick-place"' | sudo tee -a "${ENTRYPOINT}" \
+    && echo '_UPPERDIR="${_BASEDIR}/upperdir"' | sudo tee -a "${ENTRYPOINT}" \
+    && echo '_WORKDIR="${_BASEDIR}/workdir"' | sudo tee -a "${ENTRYPOINT}" \
+    && echo '_DST="${HOME}/Desktop/AILAB-isaac-sim-pick-place"' | sudo tee -a "${ENTRYPOINT}" \
+    && echo 'mkdir -p "${_UPPERDIR}" "${_WORKDIR}"' | sudo tee -a "${ENTRYPOINT}" \
+    # && echo 'mkdir -p "${_DST}"' | sudo tee -a "${ENTRYPOINT}" \
+    # && echo 'sudo fuse-overlayfs -o "auto_unmount,lowerdir=${_LOWERDIR},upperdir=${_UPPERDIR},workdir=${_WORKDIR}" "${_DST}"' | sudo tee -a "${ENTRYPOINT}" \
+    ### Enable the suitable ICD Loader and Disable the others
+    && echo 'cp /etc/vulkan/icd.d/nvidia_icd.$(uname -m).json ~/nvidia_icd.$(uname -m).json' | sudo tee -a "${ENTRYPOINT}" \
+    && echo 'sudo umount /etc/vulkan/icd.d/' | sudo tee -a "${ENTRYPOINT}" \
+    && echo 'sudo mv ~/nvidia_icd.$(uname -m).json /etc/vulkan/icd.d/' | sudo tee -a "${ENTRYPOINT}" \
+    ### Make Isaac Sim data directories and Make it persistent
+    && echo 'mkdir -p "${_BASEDIR}/kit/cache" "${_BASEDIR}/kit/data" "${_BASEDIR}/kit/documents" "${_BASEDIR}/kit/logs"' | sudo tee -a "${ENTRYPOINT}"
+
+# Configure environment variables
+ENV ACCEPT_EULA Y
+ENV OMNI_SERVER http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1
+# ENV OMNI_SERVER omniverse://localhost/NVIDIA/Assets/Isaac/2022.1
+# ENV OMNI_USER admin
+# ENV OMNI_PASS admin
+ENV MIN_DRIVER_VERSION 525.60.11
+
+# Open ports for live streaming
+EXPOSE 47995-48012/udp \
+    47995-48012/tcp \
+    49000-49007/udp \
+    49000-49007/tcp \
+    49100/tcp \
+    8011/tcp \
+    8012/tcp \
+    8211/tcp \
+    8899/tcp \
+    8891/tcp

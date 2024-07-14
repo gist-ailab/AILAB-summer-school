@@ -1,0 +1,18 @@
+# files
+*.pyc
+dataset/*
+imp_file/
+*.pth
+data_batch*
+*_batch
+*.html
+*.tar.gz
+*.meta
+cifar*
+
+*/__pycache__/*
+
+lecture/data/checkpoint
+lecture/data/scene_generate_usd
+lecture/data/*.zip
+lecture/day2/_out_gen_imgs/

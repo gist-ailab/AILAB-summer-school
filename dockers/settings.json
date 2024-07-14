@@ -1,0 +1,10 @@
+{
+	"python.analysis.extraPaths": [
+		"/isaac-sim/exts/omni.isaac.core",
+		"/isaac-sim/exts/omni.isaac.motion_generation",
+		"/isaac-sim/exts/omni.isaac.manipulators"
+	],
+
+	"editor.fontFamily": "Fira Code",
+	"editor.fontSize": 14
+}
