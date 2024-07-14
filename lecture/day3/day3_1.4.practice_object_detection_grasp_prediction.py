@@ -110,7 +110,7 @@ def get_world_center(depth, K, bb):
 # Shapenet Dataset 물체들에 대한 정보 취득
 working_dir = os.path.dirname(os.path.realpath(__file__))
 data_path = os.path.join(Path(working_dir).parent, 'data/scene_generate_usd/ShapeNetCore_TargetObjects_mat')
-objs = glob(os.path.join(data_path, '02942699/6ca77b19e3f52c5031c1d3ccd72d7161/*.usd'))
+objs = glob(os.path.join(data_path, '*/*/*.usd'))
 object_info = {}
 total_object_num = len(objs)
 for obj_idx, obj in enumerate(objs):
