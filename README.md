@@ -118,7 +118,7 @@
   pwd : dckr_pat_c3afN9jUpcVUVMqKlWxzFNL8Y_Y
   ```
   ``` Docker
-  docker pull docker.io/birdomi/ailab-summer-camp-2024:1.0.2
+  docker pull docker.io/birdomi/ailab-summer-camp-2024:1.0.3
   ```
 
 - Start the container
@@ -130,7 +130,7 @@
    -v ~/docker/isaac-sim/cache/pip:/root/.cache/pip:rw \
    -v ~/docker/isaac-sim/cache/glcache:/root/.cache/nvidia/GLCache:rw \
    -v ~/docker/isaac-sim/cache/computecache:/root/.nv/ComputeCache:rw \
-   birdomi/ailab-summer-camp-2024:1.0.2
+   birdomi/ailab-summer-camp-2024:1.0.3
    ```
 - In the docker,some alias are alreadly set.
    ``` Docker
