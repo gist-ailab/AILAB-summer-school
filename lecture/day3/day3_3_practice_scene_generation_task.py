@@ -436,19 +436,12 @@ class UR5ePickPlace(tasks.PickPlace):
     def set_camera(self):
         self.camera = Camera(
             prim_path="/World/ur5e/realsense/Depth",
-            frequency=20,
+            frequency=10,
             resolution=(1920, 1080),
         )
         
         self.camera.initialize()
-        self.camera.add_distance_to_camera_to_frame()
-        self.camera.add_instance_segmentation_to_frame()
-        self.camera.add_instance_id_segmentation_to_frame()
-        self.camera.add_semantic_segmentation_to_frame()
-        self.camera.add_bounding_box_2d_loose_to_frame()
-        self.camera.add_bounding_box_2d_tight_to_frame()
         self.camera.add_distance_to_image_plane_to_frame() # for get depth image
-        self.camera.add_pointcloud_to_frame() # for get point cloud
         
     def get_camera(self):
         return self.camera
