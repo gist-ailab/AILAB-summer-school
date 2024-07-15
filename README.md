@@ -2,11 +2,8 @@
 
 ## Environment Setup
 
-### Setting Step by Step
-#### 0. Clone Repository
-```
-git clone -b 24summer https://github.com/gist-ailab/AILAB-summer-school.git
-```
+- Below procedure is Workstation Setup and instruction to setting Step by Step
+- If you want to use already setup env please folow [docker setup](#docker-2024) instruction
 
 #### 1. Download Isaac Sim
  - Dependency check
@@ -20,57 +17,59 @@ git clone -b 24summer https://github.com/gist-ailab/AILAB-summer-school.git
  - [Download Omniverse](https://developer.nvidia.com/isaac-sim)
  
 
-#### 2. Python
-
-- Check [Python Environment Installation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html#advanced-running-with-anaconda)
- 
+#### 2. Clone Repository
 - move to `Isaac-sim` installed path
-   ``` Bash
+
+   ```Bash
    version=2023.1.1
    isaac_path=/home/${USER}/.local/share/ov/pkg/isaac-sim-${version}
    cd ${isaac_path}
    ```
 
-- Create env create
-   ``` Bash
-   conda env create -f environment.yml
-   # This process can take a long time.
+- clone repository
+  
+   ```Bash
+   git clone https://github.com/gist-ailab/AILAB-summer-school.git
+   ```
+
+#### 3. Python Setup
+
+- Check [Python Environment Installation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html#advanced-running-with-anaconda)
+ 
+- Create conda env
+  - This procedure run inside `isaac sim` path(ex. .../isaac-sim-2023.1.1$)
+  - This process can take a long time.
+   ```Bash
+   conda env create -f environment.yml 
    conda activate isaac-sim
    ```
 
 - Setup environment variables so that Isaac Sim python packages are located correctly
-   ``` Bash
+   ```Bash
    source setup_conda_env.sh
    ```
 
 - Install requirment pakages
-   ``` Bash
-   # This procedure takes place within the AILAB-summer-school repository.
+  - This procedure takes place within the `AILAB-summer-school` repository.
+   ```Bash
+   cd AILAB-summer-school
    pip install -r requirements.txt
    ```
 
 - Install pycocotools
-   ``` Bash
+   ```Bash
    conda install -c conda-forge pycocotools
    ```
 
 - Install CLIP
-   ``` Bash
+   ```Bash
    pip install git+https://github.com/openai/CLIP.git
    ```
 
-####
-
-#### 3. Checkpoint
-
-- Install gdown
-   ``` Bash
-   pip install gdown
-   # This can be skipped if you have previously installed 'requirements.txt'.
-   ```
+#### 3. Download Checkpoints and Assets
 
 - Detection model checkpoint download
-   ``` Bash
+   ```Bash
    cd lecture/data
    mkdir -p checkpoint/faster_r-cnn_ckpt
    cd checkpoint/faster_r-cnn_ckpt
@@ -78,23 +77,21 @@ git clone -b 24summer https://github.com/gist-ailab/AILAB-summer-school.git
    ```
    
 - Grasp model checkpoint download
-   ``` Bash
+   ```Bash
    cd lecture/data
    mkdir -p checkpoint/contact_grasp_ckpt
    cd checkpoint/contact_grasp_ckpt
    gdown https://drive.google.com/uc?id=16XYFNjSosM7W7DxXUNcI9VNGIPbol6tY
    ```
 
-#### 4. Dataset
-
-- Usd files download
-   ``` Bash
+- Asset files download
+   ```Bash
    cd lecture/data
    gdown https://drive.google.com/uc?id=1SA9Q6HPGmsNEY4RNGUMHsFq3HtGRoP_1
    unzip scene_generate_usd.zip
    ```
 
-### Docker (2024)
+## Docker (2024)
 - install Docker on local & set permission
   ``` Bash
   sudo apt install docker.io
