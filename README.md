@@ -112,7 +112,7 @@
 
 - Pull docker image
   ```login
-  docker login -v docker.io
+  docker login
   
   id : birdomi
   pwd : dckr_pat_c3afN9jUpcVUVMqKlWxzFNL8Y_Y
