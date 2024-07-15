@@ -91,6 +91,13 @@
    unzip scene_generate_usd.zip
    ```
 
+- Detection dataset (PennFudanPed Dataset) download
+   ```Bash
+   cd lecture/data
+   gdown https://drive.google.com/uc?id=15EbsaKLnkhHxGHYejORDTsS9rThELJMR
+   unzip PennFudanPed.zip
+   ```
+
 ## Docker (2024)
 - install Docker on local & set permission
   ``` Bash
