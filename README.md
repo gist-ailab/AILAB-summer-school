@@ -7,14 +7,15 @@
 - You can also download lecture pdf from [google drive link](https://drive.google.com/drive/folders/17rM0fWycKE9easTIgLrJuCZbneGhi1_h?usp=drive_link)
 
 #### 1. Download Isaac Sim
+ - Notice: *Following lectures are built on the version of Isaac Sim 2023.1.1.*
  - Dependency check
     - Ubuntu
-      - Recommanded: 20.04 / 22.04
-      - Tested on: 20.04
+      - Isaac Sim Recommanded : 20.04 / 22.04
+      - Lecture Tested on: 20.04
     - NVIDIA Driver version
-      - Recommanded: 525.60.11
-      - Minimum: 510.73.05
-      - Tested on: 510.108.03 / 
+      - Isaac Sim Recommanded: 525.60.11
+      - Isaac Sim Minimum: 510.73.05
+      - Lecture Tested on: 510.108.03
  - [Download Omniverse](https://developer.nvidia.com/isaac-sim)
  
 
@@ -34,12 +35,13 @@
    ```
 
 #### 3. Python Setup
-
-- Check [Python Environment Installation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html#advanced-running-with-anaconda)
+ - Notice: *Following lectures are built on the version of Python 3.10 & Anaconda environment*
+    - Replaceable with python-venv and miniconda
+ - Check [Python Environment Installation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html#advanced-running-with-anaconda)
  
-- Create conda env
-  - This procedure run inside `isaac sim` path(ex. .../isaac-sim-2023.1.1$)
-  - This process can take a long time.
+ - Create conda env
+    - This procedure run inside `isaac sim` path(ex. .../isaac-sim-2023.1.1$)
+    - This process can take a long time.
    ```Bash
    conda env create -f environment.yml 
    conda activate isaac-sim
