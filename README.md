@@ -29,7 +29,7 @@
 - clone repository
   
    ```Bash
-   git clone https://github.com/gist-ailab/AILAB-summer-school.git
+   git clone https://github.com/gist-ailab/AILAB-summer-school.git --recurse-submodules --remote-submodules
    ```
 
 #### 3. Python Setup
