@@ -288,6 +288,8 @@ while simulation_app.is_running():
                 # Detection 결과 cv2로 시각화
                 cv2.imshow('detection prediection', predict_image)
                 while True:
+                    if cv2.getWindowProperty('detection prediection', cv2.WND_PROP_VISIBLE) < 1:
+                        break
                     if cv2.waitKey(1) == ord('q'):
                         break
                 cv2.destroyAllWindows()
