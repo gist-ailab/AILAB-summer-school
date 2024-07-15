@@ -4,6 +4,7 @@
 
 - Below procedure is Workstation Setup and instruction to setting Step by Step
 - If you want to use already setup env please folow [docker setup](#docker-2024) instruction
+- You can also download lecture pdf from [google drive link](https://drive.google.com/drive/folders/17rM0fWycKE9easTIgLrJuCZbneGhi1_h?usp=drive_link)
 
 #### 1. Download Isaac Sim
  - Dependency check
