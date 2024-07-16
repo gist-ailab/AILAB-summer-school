@@ -10,12 +10,12 @@
  - Notice: *Following lectures are built on the version of Isaac Sim 2023.1.1.*
  - Dependency check
     - Ubuntu
-      - Isaac Sim Recommanded : 20.04 / 22.04
       - Lecture Tested on: 20.04
+      - Isaac Sim Recommanded : 20.04 / 22.04
     - NVIDIA Driver version
+      - Lecture Tested on: 510.108.03
       - Isaac Sim Recommanded: 525.60.11
       - Isaac Sim Minimum: 510.73.05
-      - Lecture Tested on: 510.108.03
  - [Download Omniverse](https://developer.nvidia.com/isaac-sim)
  
 
