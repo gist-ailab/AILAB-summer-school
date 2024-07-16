@@ -1,5 +1,5 @@
 # AILAB-summer-school-2024
- - Lecture Note : https://drive.google.com/drive/folders/17rM0fWycKE9easTIgLrJuCZbneGhi1_h?usp=sharing
+ - [Lecture Note](https://drive.google.com/drive/folders/17aV4v9SgPvkF6uiwpDtjKsDmiuhMFeFI?usp=sharing)
 
 ## Environment Setup
 
