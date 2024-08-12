@@ -4,7 +4,6 @@
 
  - Below procedure is Workstation Setup and instruction to setting Step by Step
  - If you want to use already setup env please follow [docker setup](#docker-2024) instruction
- - You can also download lecture pdf from [google drive link](https://drive.google.com/drive/folders/17rM0fWycKE9easTIgLrJuCZbneGhi1_h?usp=drive_link)
 
 #### 1. Download Isaac Sim
  - Notice: *Following lectures are built on the version of Isaac Sim 2023.1.1.*
